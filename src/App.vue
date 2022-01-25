@@ -55,12 +55,12 @@
     X = 'x',
   }
 
-  interface Result {
-    1: STATUS
-    2: STATUS
-    3: STATUS
-    4: STATUS
-    5: STATUS
+  type Result = {
+    1: STATUS,
+    2: STATUS,
+    3: STATUS,
+    4: STATUS,
+    5: STATUS,
   }
 
   interface Round {
@@ -68,12 +68,12 @@
     result: Result
   }
 
-  interface Rounds {
-    1: Round
-    2: Round
-    3: Round
-    4: Round
-    5: Round
+  type Rounds = {
+    1: Round,
+    2: Round,
+    3: Round,
+    4: Round,
+    5: Round,
   }
 
   const rounds = reactive<Rounds>({
@@ -137,13 +137,13 @@
 
   const words = computed(() => {
     return dictionary.filter((word) => {
-      for (const round in rounds) {
-        const answer = rounds[round].answer
-
+      for (const { answer, result } of Object.values(rounds)) {
         if (answer.length !== 5) return true
 
-        for (const slot in rounds[round].result) {
-          if (word.includes(answer.slice(+slot - 1, +slot))) return false
+        let slot = 0
+
+        for (const _ of Object.values(result)) {
+          if (word.includes(answer.slice(slot, ++slot))) return false
         }
       }
 
@@ -153,19 +153,19 @@
 
   const candidates = computed(() => {
     return dictionary.filter((word) => {
-      for (const round in rounds) {
-        const answer = rounds[round].answer
-
+      for (const { answer, result } of Object.values(rounds)) {
         if (answer.length !== 5) return true
 
-        for (const slot in rounds[round].result) {
-          const wordLetter = word.slice(+slot - 1, +slot)
-          const answerLetter = answer.slice(+slot - 1, +slot)
+        let slot = 0
 
-          if (rounds[round].result[slot] === STATUS.A && wordLetter !== answerLetter) return false
-          if (rounds[round].result[slot] === STATUS.B && !word.includes(answerLetter)) return false
-          if (rounds[round].result[slot] === STATUS.B && wordLetter === answerLetter) return false
-          if (rounds[round].result[slot] === STATUS.X && word.includes(answerLetter)) return false
+        for (const status of Object.values(result)) {
+          const w = word.slice(slot, slot + 1)
+          const a = answer.slice(slot, ++slot)
+
+          if (status === STATUS.A && w !== a) return false
+          if (status === STATUS.B && !word.includes(a)) return false
+          if (status === STATUS.B && w === a) return false
+          if (status === STATUS.X && word.includes(a)) return false
         }
       }
 
