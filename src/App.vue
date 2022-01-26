@@ -11,6 +11,9 @@
       />
     </div>
   </div>
+  <div>
+    <label><input type="checkbox" v-model="duplicate">Duplicate Letters</label>
+  </div>
   <div class="list">
     <section>
       <h2>Words</h2>
@@ -34,6 +37,7 @@
   declare global {
     interface Array<T> {
       shuffle: () => T[]
+      unique: () => T[]
     }
   }
 
@@ -47,6 +51,10 @@
     }
 
     return result
+  }
+
+  Array.prototype.unique = function<T>(this: T[]): T[] {
+    return this.filter((value, index, array) => array.indexOf(value) === index)
   }
 
   enum STATUS {
@@ -129,6 +137,8 @@
     },
   })
 
+  const duplicate = ref(false)
+
   function handleClick(round: keyof Rounds, slot: keyof Result) {
     if (rounds[round].result[slot] === STATUS.X) return rounds[round].result[slot] = STATUS.A
     if (rounds[round].result[slot] === STATUS.A) return rounds[round].result[slot] = STATUS.B
@@ -137,6 +147,12 @@
 
   const words = computed(() => {
     return dictionary.filter((word) => {
+      const letters = word.split('')
+
+      if (!duplicate.value && letters.length !== letters.unique().length) {
+        return false
+      }
+
       for (const { answer, result } of Object.values(rounds)) {
         if (answer.length !== 5) return true
 
@@ -153,13 +169,15 @@
 
   const candidates = computed(() => {
     return dictionary.filter((word) => {
+      const letters = word.split('')
+
       for (const { answer, result } of Object.values(rounds)) {
         if (answer.length !== 5) return true
 
         let slot = 0
 
         for (const status of Object.values(result)) {
-          const w = word.slice(slot, slot + 1)
+          const w = letters[slot]
           const a = answer.slice(slot, ++slot)
 
           if (status === STATUS.A && w !== a) return false
@@ -195,13 +213,14 @@
   }
 
   label {
-    margin-right: 1rem;
     font-size: 1.5rem;
     font-weight: bold;
+    display: inline-flex;
+    align-items: center;
   }
 
   input {
-    width: 5rem;
+    width: 6rem;
     height: 3rem;
     padding: 0 0.5rem;
     font-size: 1.5rem;
@@ -223,7 +242,7 @@
   }
 
   ul {
-    width: 10rem;
+    width: 8rem;
     padding: 0;
   }
 
