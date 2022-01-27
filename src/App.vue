@@ -34,29 +34,6 @@
   import dictionary from './dictionary'
   import { ref, reactive, computed } from 'vue'
 
-  declare global {
-    interface Array<T> {
-      shuffle: () => T[]
-      unique: () => T[]
-    }
-  }
-
-  Array.prototype.shuffle = function<T>(this: T[]): T[] {
-    const result = this.slice()
-    const length = this.length
-
-    for (let i = 0; i < length; i++) {
-      const j = Math.floor(Math.random() * i)
-      ;[result[i], result[j]] = [result[j], result[i]]
-    }
-
-    return result
-  }
-
-  Array.prototype.unique = function<T>(this: T[]): T[] {
-    return this.filter((value, index, array) => array.indexOf(value) === index)
-  }
-
   enum STATUS {
     A = 'a',
     B = 'b',
